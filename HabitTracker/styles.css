@@ -47,38 +47,36 @@ header h1 {
 
 .tabs {
   display: flex;
-  background-color: var(--primary-light);
+  background-color: var(--primary-light);  /* Keep or remove as desired */
+  gap: 10px;       /* Spacing between each pill tab */
+  padding: 10px;   /* Optional padding around the row */
 }
 
-/* Updated tab styling */
-/* Added a min-height to ensure consistent dimensions */
 .tab {
-  flex: 1;
+  flex: 1;                     /* Spread tabs evenly across the container */
   padding: 15px;
   min-height: 50px;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s, border-top 0.3s;
+  transition: background-color 0.3s, color 0.3s;
   font-weight: 500;
-  border: none;
-  background: none;
+  border-radius: 20px;         /* Rounded corners => “pill” shape */
+  margin: 0;                   /* No extra margin on each side */
+  background-color: var(--primary-dark);
+  color: white;
   outline: none;
-  color: var(--text);
-  border-top: 3px solid transparent;
+  border: none;                /* No border on default state */
 }
 
 .tab:hover {
-  background-color: var(--primary-dark);
+  background-color: var(--primary); /* Darker hover effect */
   color: white;
 }
 
-/* Active tab now directly keeps a white background with a top border, 
-   ensuring the white rectangle spans the full height of the tab */
 .tab.active {
-  background-color: white;
-  border-top: 0px solid var(--primary);
-  font-weight: bold;
+  background-color: white;     /* Active tab is white */
   color: var(--text);
+  font-weight: bold;
 }
 
 .tab-content {
@@ -91,7 +89,6 @@ header h1 {
   display: block;
 }
 
-/* Form styles */
 .form-group {
   margin-bottom: 20px;
 }
@@ -134,14 +131,13 @@ button:hover {
 }
 
 .btn-danger {
-  background-color: var(--danger);
+  background-color: #FF4F4F;
 }
 
 .btn-danger:hover {
   background-color: #ff7575;
 }
 
-/* New secondary button style for select/deselect controls */
 .btn-secondary {
   background-color: var(--primary-dark);
   color: white;
@@ -158,23 +154,26 @@ button:hover {
   background-color: var(--primary);
 }
 
-/* Controls styling */
-.select-controls, .chart-controls {
-  text-align: center;
-  margin-bottom: 15px;
+/* Bottom buttons container below the day-summary */
+.bottom-buttons {
+  display: flex;
+  flex-direction: column; /* Stack rows vertically */
+  align-items: flex-end;  /* Align everything to the right */
+  gap: 7px;
+  margin-top: 10px;
 }
 
-/* Habit list styles */
-.habit-list {
-  margin-top: 20px;
+.bottom-buttons .top-row {
+  display: flex; /* Undo & Redo side by side */
+  gap: 0px;
 }
 
-/* When a habit is missed, apply a light red background with a red border */
-.habit-item.missed {
-  background-color: #ffe6e6;
-  border: 1px solid #ff0000;
+.bottom-buttons .bottom-row {
+  /* By default, this inherits right-alignment from .bottom-buttons */
 }
 
+
+/* Habit item layout: checkbox, info, and actions on right */
 .habit-item {
   display: flex;
   align-items: center;
@@ -182,18 +181,19 @@ button:hover {
   border-radius: 10px;
   margin-bottom: 10px;
   background-color: var(--secondary);
-}
-
-.habit-name {
-  flex: 1;
-  font-weight: 500;
   cursor: pointer;
 }
 
-.habit-name:hover {
-  text-decoration: underline;
+.habit-check {
+  margin-right: 15px;
 }
 
+.habit-info {
+  flex: 1;
+  padding: 0 10px;
+}
+
+/* CHANGED: Reverted the streak indicator to previous style (with margin) */
 .habit-streak {
   margin: 0 15px;
   padding: 5px 10px;
@@ -202,8 +202,40 @@ button:hover {
   font-size: 14px;
 }
 
-.habit-check {
-  margin-right: 15px;
+.habit-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* CHANGED: Hover effect is now an underline (not a background highlight) */
+.habit-name {
+  cursor: pointer;
+  transition: text-decoration 0.2s;
+}
+
+.habit-name:hover {
+  text-decoration: underline;
+}
+
+/* Select/Deselect controls */
+.select-controls, .chart-controls {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.habit-list {
+  margin-top: 20px;
+}
+
+.habit-item.missed {
+  background-color: #ffe6e6;
+  box-shadow: inset 0 0 0 2px #FF4F4F; /* Internal red border */
+}
+
+.habit-item:hover {
+  background-color: #e6ffe6; /* Light green background */
+  box-shadow: inset 0 0 0 2px #5D9978; /* Internal green border */
 }
 
 /* Custom checkbox styling */
@@ -214,8 +246,8 @@ button:hover {
   cursor: pointer;
   font-size: 16px;
   user-select: none;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
 }
 
 .custom-checkbox input {
@@ -228,10 +260,10 @@ button:hover {
 
 .checkmark {
   position: absolute;
-  top: 0;
-  left: 0;
-  height: 22px;
-  width: 22px;
+  top: 7px;      /* Shift down a bit */
+  left: 10px;     /* Shift right a bit */
+  height: 26px;
+  width: 26px;
   background-color: white;
   border: 2px solid var(--primary);
   border-radius: 50%;
@@ -266,7 +298,6 @@ button:hover {
   transform: rotate(45deg);
 }
 
-/* Day summary */
 .day-summary {
   margin-top: 30px;
   padding: 20px;
@@ -281,13 +312,11 @@ button:hover {
   margin-bottom: 10px;
 }
 
-/* Chart styles */
 .chart-container {
   height: 400px;
   margin-top: 20px;
 }
 
-/* Table styles */
 .table-container {
   margin-top: 20px;
   overflow-x: auto;
@@ -320,6 +349,8 @@ tr:hover {
 
 .sort-icon {
   margin-left: 5px;
+  font-size: 16px;
+  color: var(--text);
 }
 
 .filter-controls {
@@ -332,25 +363,21 @@ tr:hover {
   flex: 1;
 }
 
-/* Average row styling */
 .average-row {
   background-color: var(--primary-light);
   font-weight: bold;
   font-size: 16px;
 }
 
-/* Prevent average row from changing color on hover */
 .average-row:hover {
   background-color: var(--primary-light);
 }
 
-/* Animation */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Suggestions dropdown positioned below the input */
 .suggestions {
   position: absolute;
   top: 100%;
@@ -375,7 +402,6 @@ tr:hover {
   background-color: var(--secondary);
 }
 
-/* Edit mode */
 .edit-mode {
   display: flex;
   align-items: center;
@@ -387,7 +413,6 @@ tr:hover {
   margin-right: 10px;
 }
 
-/* Additional styles */
 .input-group {
   display: flex;
   gap: 10px;
@@ -400,27 +425,28 @@ tr:hover {
   font-size: 20px;
   font-weight: 500;
 }
-
-.restart-container {
-  text-align: center;
-  margin: 20px;
+/* --- Overrides for Add and Submit Day buttons --- */
+#addHabit, #submitDay {
+  background-color: var(--primary-dark); /* Dark green background */
+  color: white;
+  transition: background-color 0.3s;
 }
 
-/* Responsive */
+#addHabit:hover, #submitDay:hover {
+  background-color: var(--primary); /* Lighter green on hover */
+}
+
 @media (max-width: 768px) {
   .container {
     border-radius: 10px;
   }
-  
   header {
     padding: 15px;
   }
-  
   .tab {
     padding: 10px;
     font-size: 14px;
   }
-  
   .tab-content {
     padding: 15px;
   }
