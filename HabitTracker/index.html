@@ -28,7 +28,7 @@
         </div>
       </div>
       
-      <!-- New select/deselect controls for Track Habits -->
+      <!-- Select/Deselect controls -->
       <div class="select-controls">
         <button id="selectAllHabits" class="btn-secondary">Select All</button>
         <button id="deselectAllHabits" class="btn-secondary">Deselect All</button>
@@ -46,11 +46,24 @@
         <div class="completion-rate">0% completed today</div>
         <button id="submitDay">Submit Day</button>
       </div>
+      
+      <!-- Bottom buttons: Undo, Redo, Restart placed underneath the green day summary -->
+      <div class="bottom-buttons">
+        <!-- CHANGED: Undo and Redo are now dark green (btn-secondary) -->
+         <div class="top-row">
+    <button id="undoDay" class="btn-secondary">Undo</button>
+    <button id="redoDay" class="btn-secondary">Redo</button>
+  </div>
+
+  <!-- Second row: Restart alone below -->
+  <div class="bottom-row">
+    <button id="restartBtn" class="btn-danger">Restart</button>
+  </div>
+      </div>
     </div>
     
     <div id="chart" class="tab-content">
       <h2>Streak Progress</h2>
-      <!-- Updated select/deselect controls for Progress Chart -->
       <div class="chart-controls">
         <button id="selectAllChart" class="btn-secondary">All</button>
         <button id="deselectAllChart" class="btn-secondary">Clear</button>
@@ -72,10 +85,10 @@
         <table id="habitsTable">
           <thead>
             <tr>
-              <th data-sort="name">Habit Name <span class="sort-icon">↕</span></th>
-              <th data-sort="streak">Current Streak <span class="sort-icon">↕</span></th>
-              <th data-sort="completion">Completion Rate <span class="sort-icon">↕</span></th>
-              <th data-sort="lastCompleted">Last Completed <span class="sort-icon">↕</span></th>
+              <th data-sort="name">Habit Name <span class="sort-icon">▲</span></th>
+              <th data-sort="streak">Current Streak <span class="sort-icon">⇅</span></th>
+              <th data-sort="completion">Completion Rate <span class="sort-icon">⇅</span></th>
+              <th data-sort="lastCompleted">Last Completed <span class="sort-icon">⇅</span></th>
             </tr>
           </thead>
           <tbody id="tableBody">
@@ -84,19 +97,12 @@
         </table>
       </div>
     </div>
-
-    <!-- Restart Button -->
-    <div class="restart-container">
-      <button id="restartBtn" class="btn-danger">Restart</button>
-    </div>
   </div>
 
-  <!-- Simple footer text below the container -->
   <p class="footer-text" style="text-align: center; color: grey; margin-top: 10px; font-size: 14px;">
     Habit Tracker © 2025 | Build better habits, transform your life
   </p>
 
-  <!-- Load external JavaScript files in order -->
   <script src="suggestions.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
   <script src="script.js"></script>
