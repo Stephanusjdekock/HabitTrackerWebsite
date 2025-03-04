@@ -1,0 +1,427 @@
+:root {
+  --primary: #7FBD9B;
+  --primary-light: #A0D9BE;
+  --primary-dark: #5D9978;
+  --secondary: #F0F7F3;
+  --text: #334D3C;
+  --accent: #FFCBA6;
+  --danger: #FF9E9E;
+  --success: #B1E3C3;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text);
+}
+
+body {
+  background-color: var(--secondary);
+  padding: 20px;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+header {
+  background-color: var(--primary);
+  padding: 25px;
+  text-align: center;
+  color: white;
+  border-radius: 20px 20px 0 0;
+}
+
+header h1 {
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.tabs {
+  display: flex;
+  background-color: var(--primary-light);
+}
+
+/* Updated tab styling */
+/* Added a min-height to ensure consistent dimensions */
+.tab {
+  flex: 1;
+  padding: 15px;
+  min-height: 50px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s, border-top 0.3s;
+  font-weight: 500;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--text);
+  border-top: 3px solid transparent;
+}
+
+.tab:hover {
+  background-color: var(--primary-dark);
+  color: white;
+}
+
+/* Active tab now directly keeps a white background with a top border, 
+   ensuring the white rectangle spans the full height of the tab */
+.tab.active {
+  background-color: white;
+  border-top: 0px solid var(--primary);
+  font-weight: bold;
+  color: var(--text);
+}
+
+.tab-content {
+  display: none;
+  padding: 30px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+input[type="text"]:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(127, 189, 155, 0.2);
+}
+
+button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-danger {
+  background-color: var(--danger);
+}
+
+.btn-danger:hover {
+  background-color: #ff7575;
+}
+
+/* New secondary button style for select/deselect controls */
+.btn-secondary {
+  background-color: var(--primary-dark);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  margin: 5px;
+  transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary);
+}
+
+/* Controls styling */
+.select-controls, .chart-controls {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Habit list styles */
+.habit-list {
+  margin-top: 20px;
+}
+
+/* When a habit is missed, apply a light red background with a red border */
+.habit-item.missed {
+  background-color: #ffe6e6;
+  border: 1px solid #ff0000;
+}
+
+.habit-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background-color: var(--secondary);
+}
+
+.habit-name {
+  flex: 1;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.habit-name:hover {
+  text-decoration: underline;
+}
+
+.habit-streak {
+  margin: 0 15px;
+  padding: 5px 10px;
+  background-color: var(--primary-light);
+  border-radius: 15px;
+  font-size: 14px;
+}
+
+.habit-check {
+  margin-right: 15px;
+}
+
+/* Custom checkbox styling */
+.custom-checkbox {
+  display: inline-block;
+  position: relative;
+  padding-left: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  user-select: none;
+  width: 22px;
+  height: 22px;
+}
+
+.custom-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 22px;
+  width: 22px;
+  background-color: white;
+  border: 2px solid var(--primary);
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.custom-checkbox:hover input ~ .checkmark {
+  background-color: var(--primary-light);
+}
+
+.custom-checkbox input:checked ~ .checkmark {
+  background-color: var(--primary);
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.custom-checkbox .checkmark:after {
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Day summary */
+.day-summary {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: var(--primary-light);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.completion-rate {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Chart styles */
+.chart-container {
+  height: 400px;
+  margin-top: 20px;
+}
+
+/* Table styles */
+.table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: var(--primary-light);
+  cursor: pointer;
+}
+
+th:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+tr:hover {
+  background-color: var(--secondary);
+}
+
+.sort-icon {
+  margin-left: 5px;
+}
+
+.filter-controls {
+  display: flex;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.filter-controls input {
+  flex: 1;
+}
+
+/* Average row styling */
+.average-row {
+  background-color: var(--primary-light);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Prevent average row from changing color on hover */
+.average-row:hover {
+  background-color: var(--primary-light);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Suggestions dropdown positioned below the input */
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 0 0 10px 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.suggestion-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.suggestion-item:hover {
+  background-color: var(--secondary);
+}
+
+/* Edit mode */
+.edit-mode {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.edit-mode input {
+  flex: 1;
+  margin-right: 10px;
+}
+
+/* Additional styles */
+.input-group {
+  display: flex;
+  gap: 10px;
+  position: relative;
+}
+
+.current-day {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.restart-container {
+  text-align: center;
+  margin: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    border-radius: 10px;
+  }
+  
+  header {
+    padding: 15px;
+  }
+  
+  .tab {
+    padding: 10px;
+    font-size: 14px;
+  }
+  
+  .tab-content {
+    padding: 15px;
+  }
+}
