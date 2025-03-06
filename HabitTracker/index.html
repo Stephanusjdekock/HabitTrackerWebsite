@@ -63,7 +63,11 @@
     </div>
     
     <div id="chart" class="tab-content">
-      <h2>Streak Progress</h2>
+      <h2 id="chartTitle">Streak Progress</h2>
+      <div class="chart-switch">
+        <button id="streakChartBtn" class="btn-secondary active">Streak</button>
+        <button id="completionChartBtn" class="btn-secondary">Completion</button>
+      </div>
       <div class="chart-controls">
         <button id="selectAllChart" class="btn-secondary">All</button>
         <button id="deselectAllChart" class="btn-secondary">Clear</button>
@@ -72,6 +76,7 @@
         <canvas id="streakChart"></canvas>
       </div>
     </div>
+
     
     <div id="table" class="tab-content">
       <h2>Habits Overview</h2>
