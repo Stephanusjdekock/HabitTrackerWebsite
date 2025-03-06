@@ -37,6 +37,30 @@ const deselectAllChartBtn = document.getElementById('deselectAllChart');
 
 // Initialize chart
 let streakChart;
+let currentChartType = "streak";  // New: Track current chart type
+
+// Chart type switch buttons (added after DOM elements are defined)
+const streakChartBtn = document.getElementById('streakChartBtn');
+const completionChartBtn = document.getElementById('completionChartBtn');
+
+if (streakChartBtn && completionChartBtn) {
+  streakChartBtn.addEventListener('click', () => {
+    currentChartType = "streak";
+    streakChartBtn.classList.add('active');
+    completionChartBtn.classList.remove('active');
+    document.getElementById('chartTitle').textContent = "Streak Progress";
+    updateChart();
+  });
+
+  completionChartBtn.addEventListener('click', () => {
+    currentChartType = "completion";
+    completionChartBtn.classList.add('active');
+    streakChartBtn.classList.remove('active');
+    document.getElementById('chartTitle').textContent = "Completion Rate";
+    updateChart();
+  });
+}
+
 
 // Load data from localStorage if available
 function loadData() {
@@ -318,28 +342,37 @@ deselectAllHabitsBtn.addEventListener('click', () => {
 // Chart "All" and "Clear" buttons with smooth fade transitions
 selectAllChartBtn.addEventListener('click', () => {
   if (streakChart) {
-    streakChart.data.datasets.forEach(dataset => {
-      if (dataset.label !== "Average Streak") {
+    streakChart.data.datasets.forEach((dataset, index) => {
+      // Only update habit lines (skip the Average line)
+      if (!dataset.label.startsWith("Average")) {
         dataset.opacity = 1;
-        let hue = dataset.hue;
-        dataset.borderColor = `hsla(${hue}, 70%, 60%, 1)`;
-        dataset.backgroundColor = `hsla(${hue}, 70%, 60%, 1)`;
+        if (dataset.hue !== undefined) {
+          let hue = dataset.hue;
+          dataset.borderColor = `hsla(${hue}, 70%, 60%, 1)`;
+          dataset.backgroundColor = `hsla(${hue}, 70%, 60%, 1)`;
+        }
+        streakChart.getDatasetMeta(index).hidden = false;
       }
     });
-    streakChart.update({duration: 500, easing: 'easeInOutQuad'});
+    streakChart.update({ duration: 500, easing: 'easeInOutQuad' });
   }
 });
+
 deselectAllChartBtn.addEventListener('click', () => {
   if (streakChart) {
-    streakChart.data.datasets.forEach(dataset => {
-      if (dataset.label !== "Average Streak") {
+    streakChart.data.datasets.forEach((dataset, index) => {
+      // Only update habit lines (skip the Average line)
+      if (!dataset.label.startsWith("Average")) {
         dataset.opacity = 0;
-        let hue = dataset.hue;
-        dataset.borderColor = `hsla(${hue}, 70%, 60%, 0)`;
-        dataset.backgroundColor = `hsla(${hue}, 70%, 60%, 0)`;
+        if (dataset.hue !== undefined) {
+          let hue = dataset.hue;
+          dataset.borderColor = `hsla(${hue}, 70%, 60%, 0)`;
+          dataset.backgroundColor = `hsla(${hue}, 70%, 60%, 0)`;
+        }
+        streakChart.getDatasetMeta(index).hidden = false;
       }
     });
-    streakChart.update({duration: 500, easing: 'easeInOutQuad'});
+    streakChart.update({ duration: 500, easing: 'easeInOutQuad' });
   }
 });
 
@@ -597,70 +630,136 @@ function updateChart() {
   }
   const ctx = document.getElementById('streakChart').getContext('2d');
   const labels = Array.from({ length: submittedDays }, (_, i) => `Day ${i + 1}`);
-  const newDatasets = state.habits.map((habit, index) => {
-    const hue = (index * 137) % 360;
-    const opacity = (streakChart && streakChart.data.datasets[index] && streakChart.data.datasets[index].opacity !== undefined)
-                      ? streakChart.data.datasets[index].opacity : 1;
-    const data = [];
-    let currentStreak = 0;
-    for (let day = 1; day <= submittedDays; day++) {
-      if (day < habit.startDay) {
-        data.push(null);
-      } else {
-        if (habit.history[day]) {
-          currentStreak++;
-        } else if (habit.history[day] === false && currentStreak > 0) {
-          if (day > habit.startDay && !habit.history[day - 1]) currentStreak = 0;
-        }
-        data.push(currentStreak);
-      }
-    }
-    return {
-      label: habit.name,
-      data: data,
-      hue: hue,
-      opacity: opacity,
-      borderColor: `hsla(${hue}, 70%, 60%, ${opacity})`,
-      backgroundColor: `hsla(${hue}, 70%, 60%, ${opacity})`,
-      tension: 0.3,
-      pointRadius: 3,
-      pointHoverRadius: 5
-    };
-  });
+  let newDatasets = [];
   
-  const avgData = [];
-  for (let day = 1; day <= submittedDays; day++) {
-    let sumStreak = 0, countHabits = 0;
-    state.habits.forEach(habit => {
-      if (day >= habit.startDay) {
-        let currentStreak = 0;
-        for (let d = habit.startDay; d <= day; d++) {
-          if (habit.history[d]) {
+  if (currentChartType === "streak") {
+    newDatasets = state.habits.map((habit, index) => {
+      const hue = (index * 137) % 360;
+      const opacity = (streakChart && streakChart.data.datasets[index] && streakChart.data.datasets[index].opacity !== undefined)
+                        ? streakChart.data.datasets[index].opacity : 1;
+      const data = [];
+      let currentStreak = 0;
+      for (let day = 1; day <= submittedDays; day++) {
+        if (day < habit.startDay) {
+          data.push(null);
+        } else {
+          if (habit.history[day]) {
             currentStreak++;
-          } else if (habit.history[d] === false && currentStreak > 0) {
-            if (d > habit.startDay && !habit.history[d - 1]) currentStreak = 0;
+          } else if (habit.history[day] === false && currentStreak > 0) {
+            if (day > habit.startDay && !habit.history[day - 1]) currentStreak = 0;
           }
+          data.push(currentStreak);
         }
-        sumStreak += currentStreak;
-        countHabits++;
       }
+      return {
+        label: habit.name,
+        data: data,
+        hue: hue,
+        opacity: opacity,
+        borderColor: `hsla(${hue}, 70%, 60%, ${opacity})`,
+        backgroundColor: `hsla(${hue}, 70%, 60%, ${opacity})`,
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      };
     });
-    avgData.push(countHabits > 0 ? sumStreak / countHabits : null);
+    
+    const avgData = [];
+    for (let day = 1; day <= submittedDays; day++) {
+      let sumStreak = 0, countHabits = 0;
+      state.habits.forEach(habit => {
+        if (day >= habit.startDay) {
+          let currentStreak = 0;
+          for (let d = habit.startDay; d <= day; d++) {
+            if (habit.history[d]) {
+              currentStreak++;
+            } else if (habit.history[d] === false && currentStreak > 0) {
+              if (d > habit.startDay && !habit.history[d - 1]) currentStreak = 0;
+            }
+          }
+          sumStreak += currentStreak;
+          countHabits++;
+        }
+      });
+      avgData.push(countHabits > 0 ? sumStreak / countHabits : null);
+    }
+    newDatasets.push({
+      label: "Average Streak",
+      data: avgData,
+      borderColor: 'black',
+      backgroundColor: 'black',
+      borderWidth: 3,
+      borderDash: [5, 5],
+      tension: 0.3,
+      pointRadius: 0
+    });
+  } else if (currentChartType === "completion") {
+    newDatasets = state.habits.map((habit, index) => {
+      const hue = (index * 137) % 360;
+      const opacity = (streakChart && streakChart.data.datasets[index] && streakChart.data.datasets[index].opacity !== undefined)
+                        ? streakChart.data.datasets[index].opacity : 1;
+      const data = [];
+      for (let day = 1; day <= submittedDays; day++) {
+        if (day < habit.startDay) {
+          data.push(null);
+        } else {
+          let completedCount = 0;
+          for (let d = habit.startDay; d <= day; d++) {
+            if (habit.history[d]) completedCount++;
+          }
+          const totalDays = day - habit.startDay + 1;
+          const percentage = Math.round((completedCount / totalDays) * 100);
+          data.push(percentage);
+        }
+      }
+      return {
+        label: habit.name,
+        data: data,
+        hue: hue,
+        opacity: opacity,
+        borderColor: `hsla(${hue}, 70%, 60%, ${opacity})`,
+        backgroundColor: `hsla(${hue}, 70%, 60%, ${opacity})`,
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      };
+    });
+    
+    const avgData = [];
+    for (let day = 1; day <= submittedDays; day++) {
+      let sumPercent = 0, countHabits = 0;
+      state.habits.forEach(habit => {
+        if (day >= habit.startDay) {
+          let completedCount = 0;
+          for (let d = habit.startDay; d <= day; d++) {
+            if (habit.history[d]) completedCount++;
+          }
+          const totalDays = day - habit.startDay + 1;
+          const percentage = (completedCount / totalDays) * 100;
+          sumPercent += percentage;
+          countHabits++;
+        }
+      });
+      avgData.push(countHabits > 0 ? Math.round(sumPercent / countHabits) : null);
+    }
+    newDatasets.push({
+      label: "Average Completion",
+      data: avgData,
+      borderColor: 'black',
+      backgroundColor: 'black',
+      borderWidth: 3,
+      borderDash: [5, 5],
+      tension: 0.3,
+      pointRadius: 0
+    });
   }
-  newDatasets.push({
-    label: "Average Streak",
-    data: avgData,
-    borderColor: 'black',
-    backgroundColor: 'black',
-    borderWidth: 3,
-    borderDash: [5, 5],
-    tension: 0.3,
-    pointRadius: 0
-  });
   
   if (streakChart) {
     streakChart.data.labels = labels;
     streakChart.data.datasets = newDatasets;
+    // Update y-axis options based on chart type
+    streakChart.options.scales.y.title.text = currentChartType === "streak" ? 'Streak Count' : 'Completion Rate (%)';
+    streakChart.options.scales.y.ticks = currentChartType === "streak" ? { stepSize: 1 } : { stepSize: 10, callback: value => `${value}%` };
     streakChart.update({duration: 500, easing: 'easeInOutQuad'});
   } else {
     streakChart = new Chart(ctx, {
@@ -712,8 +811,8 @@ function updateChart() {
         scales: {
           y: {
             beginAtZero: true,
-            title: { display: true, text: 'Streak Count' },
-            ticks: { stepSize: 1 }
+            title: { display: true, text: currentChartType === "streak" ? 'Streak Count' : 'Completion Rate (%)' },
+            ticks: currentChartType === "streak" ? { stepSize: 1 } : { stepSize: 10, callback: value => `${value}%` }
           },
           x: { title: { display: true, text: 'Days' } }
         }
