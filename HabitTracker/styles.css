@@ -413,6 +413,22 @@ tr:hover {
   margin-right: 10px;
 }
 
+/* New styles for chart switch buttons in the chart tab */
+.chart-switch {
+  text-align: center;
+  margin-bottom: 15px;
+}
+.chart-switch button {
+  padding: 10px 15px;
+  margin: 0 5px;
+  cursor: pointer;
+}
+.chart-switch button.active {
+  background-color: var(--primary);
+  color: white;
+}
+
+
 .input-group {
   display: flex;
   gap: 10px;
