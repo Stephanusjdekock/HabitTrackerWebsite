@@ -46,18 +46,24 @@ function loadData() {
     state.habits = parsedData.habits || [];
     state.currentDay = parsedData.currentDay || 1;
     state.dayHistory = parsedData.dayHistory || {};
+    state.undoStack = parsedData.undoStack || [];  // NEW: Load undo history
+    state.redoStack = parsedData.redoStack || [];    // NEW: Load redo history
     currentDayEl.textContent = `Day ${state.currentDay}`;
   }
 }
+
 
 // Save data to localStorage
 function saveData() {
   localStorage.setItem('habitTrackerData', JSON.stringify({
     habits: state.habits,
     currentDay: state.currentDay,
-    dayHistory: state.dayHistory
+    dayHistory: state.dayHistory,
+    undoStack: state.undoStack,  // NEW: Save undo history
+    redoStack: state.redoStack     // NEW: Save redo history
   }));
 }
+
 
 // Modal dialog functions
 function showModal(title, message, confirmText, cancelText, confirmCallback) {
