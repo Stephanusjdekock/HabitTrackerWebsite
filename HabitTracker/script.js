@@ -340,41 +340,30 @@ deselectAllHabitsBtn.addEventListener('click', () => {
 });
 
 // Chart "All" and "Clear" buttons with smooth fade transitions
-selectAllChartBtn.addEventListener('click', () => {
-  if (streakChart) {
-    streakChart.data.datasets.forEach((dataset, index) => {
-      // Only update habit lines (skip the Average line)
-      if (!dataset.label.startsWith("Average")) {
-        dataset.opacity = 1;
-        if (dataset.hue !== undefined) {
-          let hue = dataset.hue;
-          dataset.borderColor = `hsla(${hue}, 70%, 60%, 1)`;
-          dataset.backgroundColor = `hsla(${hue}, 70%, 60%, 1)`;
-        }
-        streakChart.getDatasetMeta(index).hidden = false;
+// Chart "All" and "Clear" buttons
+    selectAllChartBtn.addEventListener('click', () => {
+      if (streakChart) {
+        streakChart.data.datasets.forEach((dataset, index) => {
+          // Show all habit lines except the Average line
+          if (!dataset.label.startsWith("Average")) {
+            streakChart.show(index);
+          }
+        });
+        streakChart.update({ duration: 500, easing: 'easeInOutQuad' });
       }
     });
-    streakChart.update({ duration: 500, easing: 'easeInOutQuad' });
-  }
-});
 
-deselectAllChartBtn.addEventListener('click', () => {
-  if (streakChart) {
-    streakChart.data.datasets.forEach((dataset, index) => {
-      // Only update habit lines (skip the Average line)
-      if (!dataset.label.startsWith("Average")) {
-        dataset.opacity = 0;
-        if (dataset.hue !== undefined) {
-          let hue = dataset.hue;
-          dataset.borderColor = `hsla(${hue}, 70%, 60%, 0)`;
-          dataset.backgroundColor = `hsla(${hue}, 70%, 60%, 0)`;
-        }
-        streakChart.getDatasetMeta(index).hidden = false;
+    deselectAllChartBtn.addEventListener('click', () => {
+      if (streakChart) {
+        streakChart.data.datasets.forEach((dataset, index) => {
+          // Hide all habit lines except the Average line
+          if (!dataset.label.startsWith("Average")) {
+            streakChart.hide(index);
+          }
+        });
+        streakChart.update({ duration: 500, easing: 'easeInOutQuad' });
       }
     });
-    streakChart.update({ duration: 500, easing: 'easeInOutQuad' });
-  }
-});
 
 // Add a new habit function
 function addHabit(name) {
@@ -770,42 +759,50 @@ function updateChart() {
         maintainAspectRatio: false,
         animation: { duration: 500, easing: 'easeInOutQuad' },
         plugins: {
-          legend: {
-            position: 'top',
-            labels: {
-              usePointStyle: true,
-              boxWidth: 10,
-              padding: 15,
-              font: { size: 14 },
-              generateLabels: function(chart) {
-                const datasets = chart.data.datasets;
-                const legendItems = [];
-                datasets.forEach((dataset, i) => {
-                  legendItems.push({
-                    text: dataset.label,
-                    fillStyle: dataset.backgroundColor,
-                    strokeStyle: dataset.borderColor,
-                    lineWidth: 2,
-                    hidden: !chart.isDatasetVisible(i),
-                    index: i,
-                    datasetIndex: i
+                      legend: {
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                boxWidth: 10,
+                padding: 15,
+                font: { size: 14 },
+                generateLabels: function(chart) {
+                  const datasets = chart.data.datasets;
+                  const legendItems = [];
+                  datasets.forEach((dataset, i) => {
+                    legendItems.push({
+                      text: dataset.label,
+                      fillStyle: dataset.backgroundColor,
+                      strokeStyle: dataset.borderColor,
+                      lineWidth: 2,
+                      hidden: !chart.isDatasetVisible(i),
+                      index: i,
+                      datasetIndex: i
+                    });
                   });
-                });
-                return legendItems;
+                  return legendItems;
+                }
+              },
+              onClick: function(e, legendItem, legend) {
+                const index = legendItem.datasetIndex;
+                const ci = legend.chart;
+                const ds = ci.data.datasets[index];
+                if (ci.isDatasetVisible(index)) {
+                  ci.hide(index);
+                  legendItem.hidden = true;
+                } else {
+                  // Restore opacity and update colors before showing the dataset
+                  ds.opacity = 1;
+                  if (ds.hue !== undefined) {
+                    let hue = ds.hue;
+                    ds.borderColor = `hsla(${hue}, 70%, 60%, 1)`;
+                    ds.backgroundColor = `hsla(${hue}, 70%, 60%, 1)`;
+                  }
+                  ci.show(index);
+                  legendItem.hidden = false;
+                }
               }
             },
-            onClick: function(e, legendItem, legend) {
-              const index = legendItem.datasetIndex;
-              const ci = legend.chart;
-              if (ci.isDatasetVisible(index)) {
-                ci.hide(index);
-                legendItem.hidden = true;
-              } else {
-                ci.show(index);
-                legendItem.hidden = false;
-              }
-            }
-          },
           tooltip: { mode: 'index', intersect: false }
         },
         scales: {
