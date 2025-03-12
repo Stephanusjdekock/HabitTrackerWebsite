@@ -759,7 +759,7 @@ function updateChart() {
         maintainAspectRatio: false,
         animation: { duration: 500, easing: 'easeInOutQuad' },
         plugins: {
-                      legend: {
+            legend: {
               position: 'top',
               labels: {
                 usePointStyle: true,
@@ -803,7 +803,28 @@ function updateChart() {
                 }
               }
             },
-          tooltip: { mode: 'index', intersect: false }
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              // 1) Sort items from highest to lowest
+              itemSort: (a, b) => b.parsed.y - a.parsed.y,
+            
+              // 2) Optional: Show '%' for completion lines
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (currentChartType === 'completion') {
+                    label += context.parsed.y + '%';
+                  } else {
+                    label += context.parsed.y;
+                  }
+                  return label;
+                }
+              }
+            }
         },
         scales: {
           y: {
