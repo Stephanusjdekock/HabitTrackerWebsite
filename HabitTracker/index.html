@@ -5,15 +5,14 @@
   <meta name="description" content="Habit Tracker 2025 is a free, user-friendly tool that helps you track daily habits, stay motivated, and reach your goals. Start building better habits today!"/>
   <title>Habit Tracker</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HMQTTD03SF"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-HMQTTD03SF');
-</script>
+  <!-- Google Tag Manager -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HMQTTD03SF"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-HMQTTD03SF');
+  </script>
 </head>
 <body>
   <div class="container">
@@ -56,18 +55,15 @@
         <button id="submitDay">Submit Day</button>
       </div>
       
-      <!-- Bottom buttons: Undo, Redo, Restart placed underneath the green day summary -->
+      <!-- Bottom buttons: Undo, Redo, Restart -->
       <div class="bottom-buttons">
-        <!-- CHANGED: Undo and Redo are now dark green (btn-secondary) -->
-         <div class="top-row">
-    <button id="undoDay" class="btn-secondary">Undo</button>
-    <button id="redoDay" class="btn-secondary">Redo</button>
-  </div>
-
-  <!-- Second row: Restart alone below -->
-  <div class="bottom-row">
-    <button id="restartBtn" class="btn-danger">Restart</button>
-  </div>
+        <div class="top-row">
+          <button id="undoDay" class="btn-secondary">Undo</button>
+          <button id="redoDay" class="btn-secondary">Redo</button>
+        </div>
+        <div class="bottom-row">
+          <button id="restartBtn" class="btn-danger">Restart</button>
+        </div>
       </div>
     </div>
     
@@ -81,12 +77,13 @@
         <button id="selectAllChart" class="btn-secondary">All</button>
         <button id="deselectAllChart" class="btn-secondary">Clear</button>
       </div>
+      <div id="legendContainer"></div>
       <div class="chart-container">
-        <canvas id="streakChart"></canvas>
+        <!-- Div container for D3 chart -->
+        <div id="streakChart"></div>
       </div>
     </div>
 
-    
     <div id="table" class="tab-content">
       <h2>Habits Overview</h2>
       
@@ -113,12 +110,10 @@
     </div>
   </div>
 
-  <p class="footer-text" style="text-align: center; color: grey; margin-top: 10px; font-size: 14px;">
-    Habit Tracker © 2025 | Build better habits, transform your life
-  </p>
+  <p class="footer-text">Habit Tracker © 2025 | Build better habits, transform your life</p>
 
   <script src="suggestions.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
