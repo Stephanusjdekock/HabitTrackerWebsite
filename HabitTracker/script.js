@@ -610,41 +610,43 @@ function updateChart() {
   if (submittedDays < 1) return;
 
   const container = d3.select("#streakChart");
-  let svg = container.select("svg");
-  let g;
-  const containerWidth = container.node().clientWidth;
-  const containerHeight = 500;
+let svg = container.select("svg");
+let g;
+const containerWidth = container.node().clientWidth;
+const containerHeight = 500;
 
-  if (svg.empty()) {
-    svg = container.append("svg")
-      .attr("width", containerWidth)
-      .attr("height", containerHeight)
-      .style("font-family", "Open Sans, sans-serif")
-      .style("font-size", "14px")
-      .style("color", "#444");
-    
-    // Drop shadow filter
-    const defs = svg.append("defs");
-    defs.append("filter")
-      .attr("id", "dropShadow")
-      .attr("x", "-50%")
-      .attr("y", "-50%")
-      .attr("width", "200%")
-      .attr("height", "200%")
-      .html(`
-        <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
-        <feOffset in="blur" dx="2" dy="2" result="offsetBlur"/>
-        <feMerge>
-          <feMergeNode in="offsetBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      `);
-    g = svg.append("g")
-      .attr("class", "chart-content")
-      .attr("transform", "translate(40,20)");
-  } else {
-    g = svg.select("g.chart-content");
-  }
+if (svg.empty()) {
+  svg = container.append("svg")
+    .style("font-family", "Open Sans, sans-serif")
+    .style("font-size", "14px")
+    .style("color", "#444");
+
+  // Drop shadow filter
+  const defs = svg.append("defs");
+  defs.append("filter")
+    .attr("id", "dropShadow")
+    .attr("x", "-50%")
+    .attr("y", "-50%")
+    .attr("width", "200%")
+    .attr("height", "200%")
+    .html(`
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+      <feOffset in="blur" dx="2" dy="2" result="offsetBlur"/>
+      <feMerge>
+        <feMergeNode in="offsetBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    `);
+  g = svg.append("g")
+    .attr("class", "chart-content")
+    .attr("transform", "translate(40,20)");
+} else {
+  g = svg.select("g.chart-content");
+}
+
+// NEW: Update the SVG dimensions each time updateChart() is called.
+svg.attr("width", containerWidth)
+   .attr("height", containerHeight);
 
   // Compute datasets based on chart type
   let datasets = [];
