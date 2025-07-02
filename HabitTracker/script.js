@@ -45,7 +45,8 @@ const deselectAllChartBtn = document.getElementById('deselectAllChart');
 
 const streakChartBtn = document.getElementById('streakChartBtn');
 const completionChartBtn = document.getElementById('completionChartBtn');
-let currentChartType = "streak";  // "streak" or "completion"
+const failChartBtn = document.getElementById('failChartBtn');
+let currentChartType = "streak";  // "streak", "completion", or "fail"
 
 // ----------------------------
 // Helper Functions
@@ -181,6 +182,9 @@ function loadData() {
   if (savedData) {
     const parsedData = JSON.parse(savedData);
     state.habits = parsedData.habits || [];
+    state.habits.forEach(h => {
+      if (typeof h.lastFailed === 'undefined') h.lastFailed = null;
+    });
     state.currentDay = parsedData.currentDay || 1;
     state.dayHistory = parsedData.dayHistory || {};
     state.undoStack = parsedData.undoStack || [];
@@ -329,11 +333,12 @@ function initializeEventListeners() {
   });
 
   // Chart type switch
-  if (streakChartBtn && completionChartBtn) {
+  if (streakChartBtn && completionChartBtn && failChartBtn) {
     streakChartBtn.addEventListener('click', () => {
       currentChartType = "streak";
       streakChartBtn.classList.add('active');
       completionChartBtn.classList.remove('active');
+      failChartBtn.classList.remove('active');
       document.getElementById('chartTitle').textContent = "Streak Progress";
       updateChart();
     });
@@ -341,7 +346,16 @@ function initializeEventListeners() {
       currentChartType = "completion";
       completionChartBtn.classList.add('active');
       streakChartBtn.classList.remove('active');
+      failChartBtn.classList.remove('active');
       document.getElementById('chartTitle').textContent = "Completion Rate";
+      updateChart();
+    });
+    failChartBtn.addEventListener('click', () => {
+      currentChartType = "fail";
+      failChartBtn.classList.add('active');
+      streakChartBtn.classList.remove('active');
+      completionChartBtn.classList.remove('active');
+      document.getElementById('chartTitle').textContent = "Days Since Failure";
       updateChart();
     });
   }
@@ -360,6 +374,7 @@ function addHabit(name) {
     name,
     streak: 0,
     lastCompleted: null,
+    lastFailed: null,
     completed: false,
     history: {},
     missedDays: 0,
@@ -526,6 +541,10 @@ function updateTable() {
         aVal = a.lastCompleted || 0;
         bVal = b.lastCompleted || 0;
         break;
+      case 'lastFailed':
+        aVal = a.lastFailed || 0;
+        bVal = b.lastFailed || 0;
+        break;
       default:
         aVal = 0;
         bVal = 0;
@@ -555,6 +574,15 @@ function updateTable() {
     completionCell.textContent = habitDays > 0 ? `${completionRate}%` : 'N/A';
     row.appendChild(completionCell);
     
+    const lastFailedCell = document.createElement('td');
+    let lastFailedText = 'Never';
+    if (habit.lastFailed) {
+      const diffFail = state.currentDay - habit.lastFailed - 1;
+      lastFailedText = diffFail <= 0 ? 'Today' : `${diffFail} day${diffFail === 1 ? '' : 's'} ago`;
+    }
+    lastFailedCell.textContent = lastFailedText;
+    row.appendChild(lastFailedCell);
+
     const lastCompletedCell = document.createElement('td');
     let lastCompletedText = 'Never';
     if (habit.lastCompleted) {
@@ -569,20 +597,24 @@ function updateTable() {
   
   // Append average row
   const count = filteredHabits.length;
-  let sumStreak = 0, sumCompletion = 0, sumLastCompleted = 0;
+  let sumStreak = 0, sumCompletion = 0, sumLastCompleted = 0, sumLastFailed = 0;
   filteredHabits.forEach(habit => {
     sumStreak += habit.streak;
     const habitDays = state.currentDay - habit.startDay;
     const habitCompletedDays = getCompletedDays(habit);
     const habitCompletion = habitDays > 0 ? (habitCompletedDays / habitDays * 100) : 0;
     sumCompletion += habitCompletion;
-    const diff = habit.lastCompleted ? state.currentDay - habit.lastCompleted - 1 : state.currentDay - habit.startDay;
-    sumLastCompleted += diff;
+    const diffCompleted = habit.lastCompleted ? state.currentDay - habit.lastCompleted - 1 : state.currentDay - habit.startDay;
+    sumLastCompleted += diffCompleted;
+    const diffFailed = habit.lastFailed ? state.currentDay - habit.lastFailed - 1 : state.currentDay - habit.startDay;
+    sumLastFailed += diffFailed;
   });
   const avgStreak = count > 0 ? Math.round(sumStreak / count) : 0;
   const avgCompletion = count > 0 ? Math.round(sumCompletion / count) : 0;
   const avgLastCompletedNum = count > 0 ? Math.round(sumLastCompleted / count) : 0;
   const avgLastCompletedText = avgLastCompletedNum <= 0 ? 'Today' : `${avgLastCompletedNum} day${avgLastCompletedNum === 1 ? '' : 's'} ago`;
+  const avgLastFailedNum = count > 0 ? Math.round(sumLastFailed / count) : 0;
+  const avgLastFailedText = avgLastFailedNum <= 0 ? 'Today' : `${avgLastFailedNum} day${avgLastFailedNum === 1 ? '' : 's'} ago`;
   
   const avgRow = document.createElement('tr');
   avgRow.classList.add('average-row');
@@ -590,6 +622,7 @@ function updateTable() {
     <td>Average</td>
     <td>${avgStreak}</td>
     <td>${filteredHabits.length > 0 ? `${avgCompletion}%` : 'N/A'}</td>
+    <td>${avgLastFailedText}</td>
     <td>${avgLastCompletedText}</td>
   `;
   tableBodyEl.appendChild(avgRow);
@@ -724,6 +757,50 @@ svg.attr("width", containerWidth)
       avgData.push(count > 0 ? Math.round(sum / count) : null);
     }
     datasets.push({ label: "Average", displayLabel: "Average Completion", data: avgData, hue: null, isAverage: true });
+  } else if (currentChartType === "fail") {
+    datasets = state.habits.map((habit, index) => {
+      const hue = (index * 137) % 360;
+      let data = [];
+      let lastFail = null;
+      for (let day = 1; day <= submittedDays; day++) {
+        if (day < habit.startDay) {
+          data.push(null);
+        } else {
+          if (habit.history[day] === false) lastFail = day;
+          let value;
+          if (lastFail) {
+            value = day - lastFail;
+          } else {
+            value = day - habit.startDay;
+          }
+          data.push(value);
+        }
+      }
+      return { label: habit.name, data, hue, isAverage: false };
+    });
+    // Average days since fail
+    let avgData = [];
+    for (let day = 1; day <= submittedDays; day++) {
+      let sum = 0, count = 0;
+      state.habits.forEach(habit => {
+        if (day >= habit.startDay) {
+          let lastFail = null;
+          for (let d = habit.startDay; d <= day; d++) {
+            if (habit.history[d] === false) lastFail = d;
+          }
+          let value;
+          if (lastFail) {
+            value = day - lastFail;
+          } else {
+            value = day - habit.startDay;
+          }
+          sum += value;
+          count++;
+        }
+      });
+      avgData.push(count > 0 ? sum / count : null);
+    }
+    datasets.push({ label: "Average", displayLabel: "Average Days Since Failure", data: avgData, hue: null, isAverage: true });
   }
 
   // Scales and axes
@@ -754,8 +831,8 @@ svg.attr("width", containerWidth)
     .text("Day");
   g.append("g")
     .attr("class", "y-axis")
-    .call(d3.axisLeft(y).ticks(currentChartType === "streak" ? yMax : 10)
-      .tickFormat(d => currentChartType === "streak" ? d : d + "%"));
+    .call(d3.axisLeft(y).ticks(currentChartType === "completion" ? 10 : yMax)
+      .tickFormat(d => currentChartType === "completion" ? d + "%" : d));
   const xGrid = g.append("g")
     .attr("class", "grid x-grid")
     .attr("transform", `translate(0,${height})`)
@@ -781,7 +858,7 @@ svg.attr("width", containerWidth)
     .attr("x", -height / 2)
     .style("text-anchor", "middle")
     .style("font-weight", "500")
-    .text(currentChartType === "streak" ? "Streak Count" : "Completion Rate (%)");
+    .text(currentChartType === "streak" ? "Streak Count" : currentChartType === "completion" ? "Completion Rate (%)" : "Days Since Failure");
 
   // Tooltip setup
   let tooltip = d3.select("#tooltip");
@@ -791,14 +868,20 @@ svg.attr("width", containerWidth)
       .attr("class", "tooltip")
       .style("opacity", 0);
   }
+  // Hide tooltip when chart is redrawn to prevent stale hover info
+  tooltip.style("opacity", 0);
 
   // Data join for line groups
   let lineGroups = g.selectAll(".line-group").data(datasets, d => d.label);
   lineGroups.exit().transition().duration(500).style("opacity", 0).remove();
-  const lineGroupsEnter = lineGroups.enter().append("g").attr("class", "line-group").style("opacity", 0);
+  const lineGroupsEnter = lineGroups.enter().append("g")
+    .attr("class", "line-group")
+    .style("opacity", 0)
+    .style("pointer-events", "auto");
   lineGroups = lineGroupsEnter.merge(lineGroups);
   lineGroups.transition().duration(500)
-    .style("opacity", d => chartLineVisibility[d.label] === false ? 0 : 1);
+    .style("opacity", d => chartLineVisibility[d.label] === false ? 0 : 1)
+    .style("pointer-events", d => chartLineVisibility[d.label] === false ? "none" : "auto");
 
   const lineGenerator = d3.line()
     .defined(d => d !== null)
@@ -830,19 +913,22 @@ svg.attr("width", containerWidth)
     .attr("class", "line-overlay")
     .attr("fill", "none")
     .attr("stroke", "transparent")
-    .attr("stroke-width", 20)
+    .attr("stroke-width", 15)
     .attr("d", d => lineGenerator(d.data));
-  overlay = overlayEnter.merge(overlay);
+  overlay = overlayEnter.merge(overlay)
+    .attr("stroke-width", 15)
+    .attr("d", d => lineGenerator(d.data));
   overlay.on("mousemove", function(event, d) {
     const pointer = d3.pointer(event, g.node());
     let approxDay = x.invert(pointer[0]);
     let nearestIndex = Math.round(approxDay) - 1;
     nearestIndex = Math.max(0, Math.min(nearestIndex, d.data.length - 1));
     const value = d.data[nearestIndex];
+    const metric = currentChartType === "streak" ? "Streak" : currentChartType === "completion" ? "Completion" : "Days Since Fail";
     const info = `
       <div style="font-weight: bold; font-size: 17px;">${d.label}</div>
       <div>Day: ${nearestIndex + 1}</div>
-      <div>${currentChartType === "streak" ? "Streak" : "Completion"}: ${value !== null ? value : 'N/A'}</div>
+      <div>${metric}: ${value !== null ? value : 'N/A'}</div>
     `;
     tooltip.html(info)
       .transition().duration(200).style("opacity", 0.9);
@@ -875,7 +961,7 @@ svg.attr("width", containerWidth)
         tooltip.html(`
           <div style="font-weight: bold; font-size: 17px;">${d.label}</div>
           <div>Day: ${d.dayIndex}</div>
-          <div>${currentChartType === "streak" ? "Streak" : "Completion"}: ${d.val}</div>
+          <div>${currentChartType === "streak" ? "Streak" : currentChartType === "completion" ? "Completion" : "Days Since Fail"}: ${d.val}</div>
         `)
         .style("left", (event.pageX + 10) + "px")
         .style("top", (event.pageY - 28) + "px");
@@ -1027,6 +1113,7 @@ function submitDay() {
       habit.missedDays = 0;
     } else {
       habit.missedDays++;
+      habit.lastFailed = state.currentDay;
       if (habit.missedDays > 1) habit.streak = 0;
     }
     habit.completed = false;
