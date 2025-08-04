@@ -928,7 +928,7 @@ svg.attr("width", containerWidth)
     const info = `
       <div style="font-weight: bold; font-size: 17px;">${d.label}</div>
       <div>Day: ${nearestIndex + 1}</div>
-      <div>${metric}: ${value !== null ? value : 'N/A'}</div>
+      <div>${metric}: ${value !== null ? value.toFixed(1) : 'N/A'}</div>
     `;
     tooltip.html(info)
       .transition().duration(200).style("opacity", 0.9);
@@ -961,7 +961,9 @@ svg.attr("width", containerWidth)
         tooltip.html(`
           <div style="font-weight: bold; font-size: 17px;">${d.label}</div>
           <div>Day: ${d.dayIndex}</div>
-          <div>${currentChartType === "streak" ? "Streak" : currentChartType === "completion" ? "Completion" : "Days Since Fail"}: ${d.val}</div>
+          <div>${currentChartType === "streak" ? "Streak" :
+            currentChartType === "completion" ? "Completion" :
+            "Days Since Fail"}: ${d.val.toFixed(1)}</div>
         `)
         .style("left", (event.pageX + 10) + "px")
         .style("top", (event.pageY - 28) + "px");
