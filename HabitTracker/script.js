@@ -48,6 +48,10 @@ const completionChartBtn = document.getElementById('completionChartBtn');
 const failChartBtn = document.getElementById('failChartBtn');
 let currentChartType = "streak";  // "streak", "completion", or "fail"
 
+const timeframeControls = document.getElementById('timeframeControls');
+const timeframeButtons = timeframeControls ? timeframeControls.querySelectorAll('button') : [];
+let currentTimeframe = 'all'; // 'all', 'term', 'month', 'week'
+
 // ----------------------------
 // Helper Functions
 // ----------------------------
@@ -332,6 +336,16 @@ function initializeEventListeners() {
     updateChart();
   });
 
+  // Timeframe controls
+  timeframeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      timeframeButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTimeframe = btn.dataset.timeframe;
+      updateChart();
+    });
+  });
+
   // Chart type switch
   if (streakChartBtn && completionChartBtn && failChartBtn) {
     streakChartBtn.addEventListener('click', () => {
@@ -340,6 +354,7 @@ function initializeEventListeners() {
       completionChartBtn.classList.remove('active');
       failChartBtn.classList.remove('active');
       document.getElementById('chartTitle').textContent = "Streak Progress";
+      if (timeframeControls) timeframeControls.style.display = 'none';
       updateChart();
     });
     completionChartBtn.addEventListener('click', () => {
@@ -348,6 +363,7 @@ function initializeEventListeners() {
       streakChartBtn.classList.remove('active');
       failChartBtn.classList.remove('active');
       document.getElementById('chartTitle').textContent = "Completion Rate";
+      if (timeframeControls) timeframeControls.style.display = 'block';
       updateChart();
     });
     failChartBtn.addEventListener('click', () => {
@@ -356,6 +372,7 @@ function initializeEventListeners() {
       streakChartBtn.classList.remove('active');
       completionChartBtn.classList.remove('active');
       document.getElementById('chartTitle').textContent = "Days Since Failure";
+      if (timeframeControls) timeframeControls.style.display = 'none';
       updateChart();
     });
   }
@@ -639,6 +656,9 @@ function updateTable() {
 // Chart Functions (D3.js)
 // ----------------------------
 function updateChart() {
+  if (timeframeControls) {
+    timeframeControls.style.display = currentChartType === "completion" ? "block" : "none";
+  }
   const submittedDays = state.currentDay - 1;
   if (submittedDays < 1) return;
 
@@ -723,6 +743,9 @@ svg.attr("width", containerWidth)
     }
     datasets.push({ label: "Average", displayLabel: "Average Streak", data: avgData, hue: null, isAverage: true });
   } else if (currentChartType === "completion") {
+    const windowSize = currentTimeframe === 'week' ? 7 :
+                       currentTimeframe === 'month' ? 30 :
+                       currentTimeframe === 'term' ? 90 : null;
     datasets = state.habits.map((habit, index) => {
       const hue = (index * 137) % 360;
       let data = [];
@@ -730,11 +753,12 @@ svg.attr("width", containerWidth)
         if (day < habit.startDay) {
           data.push(null);
         } else {
+          const start = windowSize ? Math.max(habit.startDay, day - windowSize + 1) : habit.startDay;
           let completed = 0;
-          for (let d = habit.startDay; d <= day; d++) {
+          for (let d = start; d <= day; d++) {
             if (habit.history[d]) completed++;
           }
-          const totalDays = day - habit.startDay + 1;
+          const totalDays = day - start + 1;
           data.push(Math.round((completed / totalDays) * 100));
         }
       }
@@ -746,11 +770,12 @@ svg.attr("width", containerWidth)
       let sum = 0, count = 0;
       state.habits.forEach(habit => {
         if (day >= habit.startDay) {
+          const start = windowSize ? Math.max(habit.startDay, day - windowSize + 1) : habit.startDay;
           let completed = 0;
-          for (let d = habit.startDay; d <= day; d++) {
+          for (let d = start; d <= day; d++) {
             if (habit.history[d]) completed++;
           }
-          sum += (completed / (day - habit.startDay + 1)) * 100;
+          sum += (completed / (day - start + 1)) * 100;
           count++;
         }
       });
