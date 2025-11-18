@@ -444,6 +444,15 @@ tr:hover {
   color: white;
 }
 
+.table-switch {
+  text-align: left;
+  margin-top: 15px;
+}
+
+#weekTable th:not([data-week-sort]) {
+  cursor: default;
+}
+
 .input-group {
   display: flex;
   gap: 10px;
@@ -493,4 +502,4 @@ tr:hover {
   .tab-content {
     padding: 15px;
   }
-}
+} 
