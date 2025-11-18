@@ -10,6 +10,8 @@ const state = {
   dayHistory: {},
   sortField: 'name',
   sortDirection: 'asc',
+  activeTableView: 'overview',
+  weekSortDirection: 'desc',
   editingHabitId: null,
   lastCompletionRate: null,
   undoStack: [],
@@ -31,12 +33,19 @@ const currentDayEl = document.getElementById('currentDay');
 const submitDayBtn = document.getElementById('submitDay');
 const completionRateEl = document.querySelector('.completion-rate');
 const tableBodyEl = document.getElementById('tableBody');
+const weekTableBodyEl = document.getElementById('weekTableBody');
 const tableSearch = document.getElementById('tableSearch');
 const resetFiltersBtn = document.getElementById('resetFilters');
-const tableHeaders = document.querySelectorAll('th[data-sort]');
+const tableHeaders = document.querySelectorAll('#habitsTable th[data-sort]');
+const weekSortHeader = document.querySelector('#weekTable th[data-week-sort="day"]');
 const restartBtn = document.getElementById('restartBtn');
 const undoDayBtn = document.getElementById('undoDay');
 const redoDayBtn = document.getElementById('redoDay');
+const tableTitleEl = document.getElementById('tableTitle');
+const overviewTableBtn = document.getElementById('overviewTableBtn');
+const weekViewBtn = document.getElementById('weekViewBtn');
+const overviewSection = document.getElementById('overviewSection');
+const weekSection = document.getElementById('weekSection');
 
 const selectAllHabitsBtn = document.getElementById('selectAllHabits');
 const deselectAllHabitsBtn = document.getElementById('deselectAllHabits');
@@ -156,6 +165,22 @@ function removeModal() {
   if (existingModal) existingModal.remove();
 }
 
+function setTableView(view) {
+  state.activeTableView = view;
+  if (overviewTableBtn && weekViewBtn) {
+    overviewTableBtn.classList.toggle('active', view === 'overview');
+    weekViewBtn.classList.toggle('active', view === 'week');
+  }
+  if (overviewSection && weekSection) {
+    overviewSection.style.display = view === 'overview' ? 'block' : 'none';
+    weekSection.style.display = view === 'week' ? 'block' : 'none';
+  }
+  if (tableTitleEl) {
+    tableTitleEl.textContent = view === 'overview' ? 'Habits Overview' : 'Week View';
+  }
+  updateTable();
+}
+
 function updateCompletionRate() {
   if (state.habits.length === 0) {
     completionRateEl.textContent = '0% completed today';
@@ -221,7 +246,7 @@ function initializeEventListeners() {
         content.classList.toggle('active', content.id === tabId);
       });
       if (tabId === 'chart') updateChart();
-      if (tabId === 'table') updateTable();
+      if (tabId === 'table') setTableView(state.activeTableView);
     });
   });
 
@@ -301,6 +326,16 @@ function initializeEventListeners() {
       updateTable();
     });
   });
+  if (overviewTableBtn && weekViewBtn) {
+    overviewTableBtn.addEventListener('click', () => setTableView('overview'));
+    weekViewBtn.addEventListener('click', () => setTableView('week'));
+  }
+  if (weekSortHeader) {
+    weekSortHeader.addEventListener('click', () => {
+      state.weekSortDirection = state.weekSortDirection === 'asc' ? 'desc' : 'asc';
+      updateWeekTable();
+    });
+  }
 
   // Restart
   restartBtn.addEventListener('click', () => {
@@ -530,7 +565,7 @@ function renderHabits() {
   updateCompletionRate();
 }
 
-function updateTable() {
+function updateOverviewTable() {
   tableBodyEl.innerHTML = '';
   const searchTerm = tableSearch.value.toLowerCase();
   const filteredHabits = state.habits.filter(habit => habit.name.toLowerCase().includes(searchTerm));
@@ -650,6 +685,81 @@ function updateTable() {
     const iconSpan = header.querySelector('.sort-icon');
     iconSpan.textContent = field === state.sortField ? (state.sortDirection === 'asc' ? '▲' : '▼') : '⇅';
   });
+}
+
+function updateWeekTable() {
+  if (!weekTableBodyEl) return;
+  weekTableBodyEl.innerHTML = '';
+
+  const rows = [];
+  for (let offset = 7; offset >= 1; offset--) {
+    const dayNumber = state.currentDay - offset;
+    let percentage = null;
+    if (dayNumber >= 1 && state.dayHistory[dayNumber]) {
+      const dayEntries = state.dayHistory[dayNumber];
+      if (Array.isArray(dayEntries) && dayEntries.length > 0) {
+        const completedCount = dayEntries.filter(entry => entry.completed).length;
+        percentage = Math.round((completedCount / dayEntries.length) * 100);
+      } else if (Array.isArray(dayEntries)) {
+        percentage = 0;
+      }
+    }
+    rows.push({ offset, percentage });
+  }
+
+  const sortedRows = rows.slice().sort((a, b) => {
+    return state.weekSortDirection === 'asc' ? a.offset - b.offset : b.offset - a.offset;
+  });
+
+  sortedRows.forEach(row => {
+    const tr = document.createElement('tr');
+    const dayCell = document.createElement('td');
+    dayCell.textContent = `${row.offset} day${row.offset === 1 ? '' : 's'} ago`;
+    tr.appendChild(dayCell);
+    const avgCell = document.createElement('td');
+    avgCell.textContent = row.percentage !== null ? `${row.percentage}%` : 'N/A';
+    tr.appendChild(avgCell);
+    weekTableBodyEl.appendChild(tr);
+  });
+
+  const validRows = rows.filter(row => row.percentage !== null);
+  const avgPercent = validRows.length > 0
+    ? (validRows.reduce((sum, row) => sum + row.percentage, 0) / validRows.length)
+    : null;
+
+  const avgRow = document.createElement('tr');
+  avgRow.classList.add('average-row');
+  avgRow.innerHTML = `
+    <td>Average</td>
+    <td>${avgPercent !== null ? `${avgPercent.toFixed(2)}%` : 'N/A'}</td>
+  `;
+  weekTableBodyEl.appendChild(avgRow);
+
+  const totalMinutes = validRows.reduce((sum, row) => sum + (row.percentage / 100) * 30, 0);
+  const roundedMinutes = Math.round(totalMinutes);
+  const hours = Math.floor(roundedMinutes / 60);
+  const minutes = roundedMinutes % 60;
+  const timeText = validRows.length > 0 ? `${hours}h:${minutes.toString().padStart(2, '0')}m` : '0h:00m';
+  const timeRow = document.createElement('tr');
+  timeRow.classList.add('average-row');
+  timeRow.innerHTML = `
+    <td>Time</td>
+    <td>${timeText}</td>
+  `;
+  weekTableBodyEl.appendChild(timeRow);
+
+  if (weekSortHeader) {
+    const icon = weekSortHeader.querySelector('.sort-icon');
+    if (icon) icon.textContent = state.weekSortDirection === 'asc' ? '▲' : '▼';
+  }
+}
+
+function updateTable() {
+  if (state.activeTableView === 'week') {
+    updateWeekTable();
+  } else {
+    updateOverviewTable();
+  }
 }
 
 // ----------------------------
@@ -1199,4 +1309,5 @@ function redoDay() {
 // ----------------------------
 loadData();
 initializeEventListeners();
+setTableView('overview');
 renderHabits();
