@@ -92,28 +92,51 @@
     </div>
 
     <div id="table" class="tab-content">
-      <h2>Habits Overview</h2>
-      
-      <div class="filter-controls">
-        <input type="text" id="tableSearch" placeholder="Search habits..." />
-        <button id="resetFilters">Reset Filters</button>
+      <h2 id="tableTitle">Habits Overview</h2>
+
+      <div class="chart-switch table-switch">
+        <button id="overviewTableBtn" class="btn-secondary active">Overview</button>
+        <button id="weekViewBtn" class="btn-secondary">Week View</button>
       </div>
-      
-      <div class="table-container">
-        <table id="habitsTable">
-          <thead>
-            <tr>
-              <th data-sort="name">Habit Name <span class="sort-icon">▲</span></th>
-              <th data-sort="streak">Current Streak <span class="sort-icon">⇅</span></th>
-              <th data-sort="completion">Completion Rate <span class="sort-icon">⇅</span></th>
-              <th data-sort="lastFailed">Last Failed <span class="sort-icon">⇅</span></th>
-              <th data-sort="lastCompleted">Last Completed <span class="sort-icon">⇅</span></th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <!-- Table rows will be added here -->
-          </tbody>
-        </table>
+
+      <div id="overviewSection">
+        <div class="filter-controls">
+          <input type="text" id="tableSearch" placeholder="Search habits..." />
+          <button id="resetFilters">Reset Filters</button>
+        </div>
+
+        <div class="table-container">
+          <table id="habitsTable">
+            <thead>
+              <tr>
+                <th data-sort="name">Habit Name <span class="sort-icon">▲</span></th>
+                <th data-sort="streak">Current Streak <span class="sort-icon">⇅</span></th>
+                <th data-sort="completion">Completion Rate <span class="sort-icon">⇅</span></th>
+                <th data-sort="lastFailed">Last Failed <span class="sort-icon">⇅</span></th>
+                <th data-sort="lastCompleted">Last Completed <span class="sort-icon">⇅</span></th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Table rows will be added here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="weekSection" style="display: none;">
+        <div class="table-container">
+          <table id="weekTable">
+            <thead>
+              <tr>
+                <th data-week-sort="day">Day <span class="sort-icon">▼</span></th>
+                <th>Daily Average</th>
+              </tr>
+            </thead>
+            <tbody id="weekTableBody">
+              <!-- Week view rows -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
