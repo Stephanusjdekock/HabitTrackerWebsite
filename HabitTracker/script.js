@@ -41,6 +41,9 @@ const weekSortHeader = document.querySelector('#weekTable th[data-week-sort="day
 const restartBtn = document.getElementById('restartBtn');
 const undoDayBtn = document.getElementById('undoDay');
 const redoDayBtn = document.getElementById('redoDay');
+const exportDataBtn = document.getElementById('exportData');
+const importDataBtn = document.getElementById('importData');
+const importFileInput = document.getElementById('importFile');
 const tableTitleEl = document.getElementById('tableTitle');
 const overviewTableBtn = document.getElementById('overviewTableBtn');
 const weekViewBtn = document.getElementById('weekViewBtn');
@@ -232,6 +235,70 @@ function saveData() {
   }));
 }
 
+function buildExportPayload() {
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: {
+      habits: state.habits,
+      currentDay: state.currentDay,
+      dayHistory: state.dayHistory,
+      undoStack: state.undoStack,
+      redoStack: state.redoStack
+    }
+  };
+}
+
+function downloadExport() {
+  const payload = buildExportPayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  link.href = url;
+  link.download = `habit-tracker-export-${date}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function normalizeImportData(parsed) {
+  if (parsed && parsed.data) {
+    return parsed.data;
+  }
+  return parsed;
+}
+
+function resetChartVisibility() {
+  Object.keys(chartLineVisibility).forEach(key => delete chartLineVisibility[key]);
+  state.habits.forEach(habit => {
+    chartLineVisibility[habit.name] = true;
+  });
+}
+
+function applyImportedData(importData) {
+  if (!importData || !Array.isArray(importData.habits)) {
+    throw new Error('Import file is missing habit data.');
+  }
+  state.habits = importData.habits || [];
+  state.habits.forEach(h => {
+    if (typeof h.lastFailed === 'undefined') h.lastFailed = null;
+  });
+  state.currentDay = importData.currentDay || 1;
+  state.dayHistory = importData.dayHistory || {};
+  state.undoStack = importData.undoStack || [];
+  state.redoStack = importData.redoStack || [];
+  currentDayEl.textContent = `Day ${state.currentDay}`;
+  resetChartVisibility();
+  saveData();
+  renderHabits();
+  updateCompletionRate();
+  updateTable();
+  updateChart();
+  showModal("Import Complete", "Your habit data has been imported successfully.", "OK");
+}
+
 // ----------------------------
 // Event Handlers Initialization
 // ----------------------------
@@ -309,6 +376,42 @@ function initializeEventListeners() {
   redoDayBtn.addEventListener('click', () => {
     showModal("Redo Submission", "Are you sure you want to redo the next submission?", "Redo", "Cancel", redoDay);
   });
+
+  if (exportDataBtn) {
+    exportDataBtn.addEventListener('click', () => {
+      saveData();
+      downloadExport();
+    });
+  }
+
+  if (importDataBtn && importFileInput) {
+    importDataBtn.addEventListener('click', () => {
+      importFileInput.value = '';
+      importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          const data = normalizeImportData(parsed);
+          showModal(
+            "Import Data",
+            "Importing will replace your current habits, streaks, and history. Continue?",
+            "Import",
+            "Cancel",
+            () => applyImportedData(data)
+          );
+        } catch (error) {
+          showModal("Import Failed", "That file doesn't look like valid Habit Tracker data.", "OK");
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
 
   // Table search and sort
   tableSearch.addEventListener('input', updateTable);
