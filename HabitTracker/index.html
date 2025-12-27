@@ -65,6 +65,15 @@
           <button id="restartBtn" class="btn-danger">Restart</button>
         </div>
       </div>
+
+      <div class="data-controls">
+        <div class="data-buttons">
+          <button id="exportData" class="btn-secondary">Export Data</button>
+          <button id="importData" class="btn-secondary">Import Data</button>
+          <input type="file" id="importFile" accept="application/json" hidden />
+        </div>
+        <p class="data-note">Importing will replace the current habits, streaks, and history.</p>
+      </div>
     </div>
     
     <div id="chart" class="tab-content">
